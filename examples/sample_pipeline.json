@@ -1,0 +1,57 @@
+{
+  "name": "sample-generic-pipeline",
+  "description": "A minimal pipeline that ingests text and stages a summary",
+  "use_case": "generic",
+  "definition": {
+    "metadata": {
+      "version": "1.0",
+      "description": "Sample generic pipeline",
+      "use_case": "generic"
+    },
+    "nodes": [
+      {
+        "id": "ingest",
+        "type": "DocumentIngestionNode",
+        "config": {
+          "source_type": "text_payload"
+        }
+      },
+      {
+        "id": "process",
+        "type": "LLMProcessingNode",
+        "config": {
+          "mode": "summarize",
+          "model_name": "mock-model",
+          "prompt_template_id": "generic_summary",
+          "output_schema_id": "generic_structured_output"
+        }
+      },
+      {
+        "id": "validate",
+        "type": "ValidationNode",
+        "config": {
+          "ruleset_name": "generic_rules",
+          "use_semantic_lookup": false,
+          "thresholds": {}
+        }
+      },
+      {
+        "id": "stage",
+        "type": "StagingNode",
+        "config": {
+          "target_table": "staged_data",
+          "payload_type": "generic_structured_output",
+          "write_embeddings": false,
+          "review_rule": {
+            "set_needs_review_if_validation_failed": true
+          }
+        }
+      }
+    ],
+    "edges": [
+      {"id": "e1", "source": "ingest", "target": "process"},
+      {"id": "e2", "source": "process", "target": "validate"},
+      {"id": "e3", "source": "validate", "target": "stage"}
+    ]
+  }
+}
